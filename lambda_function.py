@@ -1,15 +1,11 @@
 #------------------------------Part1--------------------------------
 # In this part we define a list that contains the player names, and 
 # a dictionary with player biographies
-Player_LIST = ["Jose Raul Capablanca", "Mikhail Tal", "Bobby Fisher", "Garry Kasparov"]
+sound_list = ["Bass Drum"]
 
-Player_BIOGRAPHY = {"jose raul capablanca":"Jose Raul Capablanca y Graupera (November 19, 1888 - March 8, 1942) was a Cuban chess player who was world chess champion from 1921 to 1927.",
+first_choice_list = ["rhythm", "sound", "rhythms", 'sounds']
 
-"mikhail tal":"Mikhail Nekhemyevich Tal (November 9, 1936 - June 28, 1992) was a Soviet Latvian chess Grandmaster and the eighth World Chess Champion from 1960 to 1961.",
-
-"bobby fisher":"Robert James Fischer (March 9, 1943 - January 17, 2008) was an American chess grandmaster and the eleventh World Chess Champion.",
-
-"garry kasparov":"Garry Kimovich Kasparov (April 3, 1963) is a Russian chess grandmaster, former world chess champion, writer, and political activist, who many consider to be the greatest chess player of all time"}
+sound_explanation = {"Bass Drum": "Boots"}
 #------------------------------Part2--------------------------------
 # Here we define our Lambda function and configure what it does when 
 # an event with a Launch, Intent and Session End Requests are sent. # The Lambda function responses to an event carrying a particular 
@@ -30,12 +26,11 @@ def on_start():
     print("Session Started.")
 
 def on_launch(event):
-    onlunch_MSG = "Hi, welcome to the My Favourite Chess Player Alexa Skill. My favourite chess players are: " + ', '.join(map(str, Player_LIST)) + ". "\
-    "If you would like to hear more about a particular player, you could say for example: tell me about Bobby Fisher?"
-    reprompt_MSG = "Do you want to hear more about a particular player?"
-    card_TEXT = "Pick a chess payer."
-    card_TITLE = "Choose a chess player."
-    return output_json_builder_with_reprompt_and_card(onlunch_MSG, card_TEXT, card_TITLE, reprompt_MSG, False)
+    onlaunch_MSG = "Hi, welcome to Boots and Cats Beatbox. Do you want to learn new sounds or new rhythms today?"
+    reprompt_MSG = "Do you want to learn sounds or rhythms?"
+    card_TEXT = "Sounds or Rhythms?"
+    card_TITLE = "Sounds or Rhythms?"
+    return output_json_builder_with_reprompt_and_card(onlaunch_MSG, card_TEXT, card_TITLE, reprompt_MSG, False)
 
 def on_end():
     print("Session Ended.")
@@ -49,8 +44,8 @@ def intent_scheme(event):
     
     intent_name = event['request']['intent']['name']
 
-    if intent_name == "playerBio":
-        return player_bio(event)        
+    if intent_name == "goto_sounds_menu":
+        return rhythm_or_sound(event)        
     elif intent_name in ["AMAZON.NoIntent", "AMAZON.StopIntent", "AMAZON.CancelIntent"]:
         return stop_the_skill(event)
     elif intent_name == "AMAZON.HelpIntent":
@@ -59,21 +54,44 @@ def intent_scheme(event):
         return fallback_call(event)
 #---------------------------Part3.1.1-------------------------------
 # Here we define the intent handler functions
-def player_bio(event):
-    name=event['request']['intent']['slots']['player']['value']
-    player_list_lower=[w.lower() for w in Player_LIST]
-    if name.lower() in player_list_lower:
-        reprompt_MSG = "Do you want to hear more about a particular player?"
-        card_TEXT = "You've picked " + name.lower()
-        card_TITLE = "You've picked " + name.lower()
-        return output_json_builder_with_reprompt_and_card(Player_BIOGRAPHY[name.lower()], card_TEXT, card_TITLE, reprompt_MSG, False)
+def rhythm_or_sound(event):
+    bb_type = event['request']['intent']['slots']['first_choice']['value']
+    first_choice_lower=[w.lower() for w in first_choice_list]
+    lower_bbt = bb_type.lower()
+    if lower_bbt in first_choice_lower:
+        reprompt_MSG = "Sounds or Rhythms?"
+        card_TEXT = "You've picked " + lower_bbt
+        card_TITLE = "You've picked " + lower_bbt
+        
+        if (lower_bbt == 'sounds') or (lower_bbt == 'sound'):
+            return sound_selector(event)  
+        
+        return output_json_builder_with_reprompt_and_card(lower_bbt, card_TEXT, card_TITLE, reprompt_MSG, False)
+    else:
+        wrongname_MSG = "Sounds or Rhythms?"
+        reprompt_MSG = "Sounds or Rhythms?"
+        card_TEXT = "Use the full name."
+        card_TITLE = "Wrong name."
+        return output_json_builder_with_reprompt_and_card(wrongname_MSG, card_TEXT, card_TITLE, reprompt_MSG, False)
+        
+        
+def sound_selector(event):
+    sound_type = event['request']['intent']['slots']['sounds']['value']
+    sound_lower = [w.lower() for w in sound_list]
+    lower_sound = sound_type.lower()
+    if lower_sound in sound_lower:
+        reprompt_MSG = "You can learn these sounds:" + ', '.join(map(str, sound_list)) + "Which sound would you like to learn?"
+        card_TEXT = "Time to learn the " + lower_sound
+        card_TITLE = "Time to learn the " + lower_sound
+        
+        return output_json_builder_with_reprompt_and_card(lower_bbt, card_TEXT, card_TITLE, reprompt_MSG, False)
     else:
         wrongname_MSG = "You haven't used the full name of a player. If you have forgotten which players you can pick say Help."
         reprompt_MSG = "Do you want to hear more about a particular player?"
         card_TEXT = "Use the full name."
         card_TITLE = "Wrong name."
-        return output_json_builder_with_reprompt_and_card(wrongname_MSG, card_TEXT, card_TITLE, reprompt_MSG, False)
-        
+        return output_json_builder_with_reprompt_and_card(wrongname_MSG, card_TEXT, card_TITLE, reprompt_MSG, False)    
+    
 def stop_the_skill(event):
     stop_MSG = "Thank you. Bye!"
     reprompt_MSG = ""
@@ -82,7 +100,7 @@ def stop_the_skill(event):
     return output_json_builder_with_reprompt_and_card(stop_MSG, card_TEXT, card_TITLE, reprompt_MSG, True)
     
 def assistance(event):
-    assistance_MSG = "You can choose among these players: " + ', '.join(map(str, Player_LIST)) + ". Be sure to use the full name when asking about the player."
+    assistance_MSG = "You can choose among these players: " + ', '.join(map(str, sound_list)) + ". Be sure to use the full name when asking about the player."
     reprompt_MSG = "Do you want to hear more about a particular player?"
     card_TEXT = "You've asked for help."
     card_TITLE = "Help"
